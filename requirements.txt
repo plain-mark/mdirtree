@@ -1,0 +1,6 @@
+flask>=2.0.0
+requests>=2.25.0
+click>=8.0.0
+colorama>=0.4.4
+typing-extensions>=4.0.0
+pyyaml>=5.4.1
