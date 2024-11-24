@@ -34,7 +34,7 @@ sed -i "s/$VERSION_SETUP/$VERSION_CHANGELOG/" src/mdirtree/__init__.py
 echo -e "${GREEN}push changes...${NC}"
 ./git.sh
 
-# Check if we're in a clean git state
+echo -e "${GREEN}Check if we're in a clean git state${NC}"
 if [[ -n $(git status -s) ]]; then
     echo -e "${RED}Error: Git working directory is not clean${NC}"
     echo "Please commit or stash your changes first"

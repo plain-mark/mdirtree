@@ -1,4 +1,4 @@
-# src/mdirtree/changelog.py
+#!/bin/python
 import subprocess
 import os
 import re
