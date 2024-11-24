@@ -8,14 +8,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mdirtree"
-dynamic = ["version"]
+dynamic = ["version", "scripts"]  # Dodano scripts do dynamic
 description = "Generate directory structure from ASCII art or Markdown files"
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
-authors = [
-    {name = "Your Name", email = "your.email@example.com"}
-]
 license = {text = "Apache"}
+authors = [
+    {name = "Tom Sapletta", email = "info@softreck.dev"}
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -49,15 +49,14 @@ dev = [
     "pre-commit>=2.15.0",
     "tox>=4.11.3",
     "twine>=3.4.2",
-    "build>=0.7.0"
+    "build>=0.7.0",
+    "gitpython>=3.1.0"
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["mdirtree*"]
 
-[tool.setuptools_scm]
-write_to = "src/mdirtree/_version.py"
 
 [tool.black]
 line-length = 88
@@ -72,3 +71,4 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 88
+

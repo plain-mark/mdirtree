@@ -18,19 +18,20 @@ get_latest_version() {
 }
 
 
-# Get version and changes
+echo -e "${GREEN}Get version and changes...${NC}"
 VERSION_CHANGELOG=$(get_latest_version)
 if [ -z "$VERSION_CHANGELOG" ]; then
     echo "Error: Could not find version in CHANGELOG.md"
     exit 1
 fi
 
-# Update version in setup.py
+echo -e "${GREEN}Update version in setup.py...${NC}"
 VERSION_SETUP=$(python setup.py --version)
 #sed -i "s/$VERSION_SETUP/$VERSION_CHANGELOG/" setup.py
 #sed -i "s/$VERSION_SETUP/$VERSION_CHANGELOG/" setup.cfg
-sed -i "s/$VERSION_SETUP/$VERSION_CHANGELOG/" mdirtree/__init__.py
+sed -i "s/$VERSION_SETUP/$VERSION_CHANGELOG/" src/mdirtree/__init__.py
 
+echo -e "${GREEN}push changes...${NC}"
 ./git.sh
 
 # Check if we're in a clean git state
