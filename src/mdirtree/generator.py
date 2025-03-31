@@ -22,6 +22,36 @@ class DirectoryStructureGenerator:
             self.logger.info(f"RAW LINE: '{line}'")
         self.logger.info("")
 
+    def _calculate_indent_level(self, line: str) -> int:
+        """Calculate the indentation level of a line based on tree structure patterns."""
+        # Count indentation units (each '│   ' pattern counts as one unit)
+        indent_units = 0
+        i = 0
+
+        # For detailed debugging
+        self.logger.debug(f"Analyzing indentation for line: '{line}'")
+
+        # Count each unit of indentation ('│   ' pattern)
+        while i < len(line):
+            if i + 4 <= len(line) and line[i:i + 4] == '│   ':
+                indent_units += 1
+                i += 4
+                self.logger.debug(f"Found '│   ' pattern at position {i - 4}, indent_units now {indent_units}")
+            elif i + 4 <= len(line) and line[i:i + 4] == '    ':
+                # Handle case for examples directory (spaces only)
+                indent_units += 1
+                i += 4
+                self.logger.debug(f"Found '    ' pattern at position {i - 4}, indent_units now {indent_units}")
+            elif line[i:i + 1] in ['├', '└', ' ']:
+                # Skip branch markers or spaces at current position
+                i += 1
+            else:
+                # Found non-indent character, we're done counting
+                break
+
+        self.logger.debug(f"Final indent level: {indent_units} for line '{line}'")
+        return indent_units
+
     def parse_tree(self) -> None:
         """Parse the ASCII tree structure into a directory hierarchy."""
         self.logger.info("Building directory structure...")
@@ -41,20 +71,9 @@ class DirectoryStructureGenerator:
                 self.logger.info("Skipping empty line or vertical bar")
                 continue
 
-            # Calculate indentation level by counting spaces before tree markers
-            spaces_before_content = 0
-            for char in line:
-                if char == ' ':
-                    spaces_before_content += 1
-                elif char in ['│', '├', '└']:
-                    # Count tree characters as part of indentation but don't add to spaces count
-                    pass
-                else:
-                    break
-
-            # Determine depth based on spaces (each level is 4 spaces)
-            depth = spaces_before_content // 4
-            self.logger.info(f"Depth: {depth}, Spaces: {spaces_before_content}")
+            # Calculate indentation level
+            indent_level = self._calculate_indent_level(line)
+            self.logger.info(f"Indent level: {indent_level}")
 
             # Clean the line by removing all tree markers and leading/trailing whitespace
             clean_line = line.strip()
@@ -91,75 +110,14 @@ class DirectoryStructureGenerator:
                 self.structure[root_dir] = {'files': [], 'dirs': [], 'comments': {}}
                 continue
 
-            # Find parent directory based on depth
-            if depth == 0:
-                # Top-level items are direct children of root
-                parent_dir = root_dir
-            else:
-                # Construct parent path based on current directory path
-                current_path = []
-                current_depth = 0
-                parent_found = False
-
-                # Scan through previous lines to find the parent directory
-                for j in range(i - 1, 0, -1):
-                    prev_line = lines[j - 1]
-
-                    # Skip empty or vertical bar lines
-                    if not prev_line.strip() or prev_line.strip() == '│':
-                        continue
-
-                    # Calculate indent level of previous line
-                    prev_spaces = 0
-                    for char in prev_line:
-                        if char == ' ':
-                            prev_spaces += 1
-                        elif char in ['│', '├', '└']:
-                            # Count tree characters as part of indentation but don't add to spaces count
-                            pass
-                        else:
-                            break
-
-                    prev_depth = prev_spaces // 4
-
-                    # If this is a potential parent
-                    if prev_depth < depth:
-                        # Clean the previous line
-                        prev_clean = prev_line.strip()
-                        if "├── " in prev_clean:
-                            prev_clean = prev_clean.replace("├── ", "", 1)
-                        elif "└── " in prev_clean:
-                            prev_clean = prev_clean.replace("└── ", "", 1)
-                        prev_clean = prev_clean.replace("│", "").strip()
-
-                        # Remove comment if any
-                        if '#' in prev_clean:
-                            prev_clean = prev_clean.split('#', 1)[0].strip()
-
-                        # If it's a directory, add to path
-                        if prev_clean.endswith('/'):
-                            current_path.insert(0, prev_clean.rstrip('/'))
-                            current_depth = prev_depth
-
-                            # If we reached the desired parent level, stop
-                            if current_depth == depth - 1:
-                                parent_found = True
-                                break
-
-                # Build the parent directory path
-                if parent_found and root_dir:
-                    current_path.insert(0, root_dir)
-                    parent_dir = os.path.join(*current_path)
-                else:
-                    # Fallback to root if parent not found
-                    parent_dir = root_dir
-
+            # Find parent directory based on indent level
+            parent_dir = self._find_parent_dir(root_dir, indent_level, i, lines)
             self.logger.info(f"Parent directory: '{parent_dir}'")
 
             # Ensure parent exists in structure
             if parent_dir not in self.structure:
+                self.logger.info(f"Creating new structure entry for: '{parent_dir}'")
                 self.structure[parent_dir] = {'files': [], 'dirs': [], 'comments': {}}
-                self.logger.info(f"Created new structure entry for: '{parent_dir}'")
 
             # Add file or directory to parent
             if is_dir:
@@ -191,6 +149,66 @@ class DirectoryStructureGenerator:
             self.logger.info(f"Directories: {content['dirs']}")
             self.logger.info(f"Files: {content['files']}")
             self.logger.info(f"Comments: {content['comments']}")
+
+    def _find_parent_dir(self, root_dir: str, indent_level: int, current_line_idx: int, lines: List[str]) -> str:
+        """Find the parent directory for a line based on indent level and previous lines."""
+        # Root level items belong to root_dir
+        if indent_level == 0:
+            return root_dir
+
+        # For indented items, scan back to find the parent
+        parent_path = []
+        if root_dir:
+            parent_path.append(root_dir)
+
+        # Debug logging
+        self.logger.debug(f"Finding parent for indent level {indent_level}, line index {current_line_idx}")
+
+        # Scan backward to find parent directories at correct indent levels
+        for j in range(current_line_idx - 1, 0, -1):
+            prev_line = lines[j - 1]
+
+            # Skip empty or vertical bar lines
+            if not prev_line.strip() or prev_line.strip() == '│':
+                continue
+
+            # Calculate indent of previous line
+            prev_indent = self._calculate_indent_level(prev_line)
+            self.logger.debug(f"Checking line {j}: '{prev_line}', indent: {prev_indent}")
+
+            # If we found a potential parent (line with indent level one less than current)
+            if prev_indent == indent_level - 1:
+                # Clean and extract the name
+                prev_clean = prev_line.strip()
+                if "├── " in prev_clean:
+                    prev_clean = prev_clean.replace("├── ", "", 1)
+                elif "└── " in prev_clean:
+                    prev_clean = prev_clean.replace("└── ", "", 1)
+                prev_clean = prev_clean.replace("│", "").strip()
+
+                # Remove comment if any
+                if '#' in prev_clean:
+                    prev_clean = prev_clean.split('#', 1)[0].strip()
+
+                # If it's a directory, it can be a parent
+                if prev_clean.endswith('/'):
+                    dir_name = prev_clean.rstrip('/')
+                    self.logger.debug(f"Found potential parent dir: '{dir_name}' at level {prev_indent}")
+
+                    # For items at indent 1, check if this is a direct child of root
+                    if indent_level == 1:
+                        return os.path.join(root_dir, dir_name)
+                    else:
+                        # For deeper nesting, check if the directory already exists in our structure
+                        # and return its full path if found
+                        for path in self.structure.keys():
+                            if path.endswith('/' + dir_name):
+                                self.logger.debug(f"Found existing parent path: '{path}'")
+                                return path
+
+        # Fallback to root if no parent found
+        self.logger.debug(f"No parent found, using root directory: '{root_dir}'")
+        return root_dir
 
     def generate_structure(self, base_path: str = '.', dry_run: bool = False) -> List[str]:
         """Generate the actual directory structure on disk."""
