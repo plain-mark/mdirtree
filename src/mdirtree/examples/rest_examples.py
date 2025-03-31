@@ -1,3 +1,5 @@
+# src/mdirtree/examples/rest_examples.py
+
 """Przykłady użycia REST API mdirtree."""
 
 from mdirtree.rest.client import MdirtreeClient

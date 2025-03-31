@@ -1,7 +1,11 @@
+# src/mdirtree/cli.py
+
 import argparse
 import sys
 from .generator import DirectoryStructureGenerator
-
+import re
+from pathlib import Path
+from typing import Optional
 
 def extract_structure_from_markdown(content: str) -> str:
     """Extract directory structure from Markdown file."""

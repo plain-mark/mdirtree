@@ -1,3 +1,5 @@
+# src/mdirtree/rest/client.py
+
 import requests
 from typing import Dict, List, Optional
 

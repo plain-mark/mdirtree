@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0] - 2025-03-31
+
+### Removed
+- Changes in os
+- Changes in re
+- Changes in subprocess
+
+## [0.1.2] - 2024-11-24
+
+### Fixed
+- issues with deployment and publishing
+
 
 ## [0.1.1] - 2024-11-24
 
