@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2025-03-31
+
+### Removed
+- Changes in desired_output_directory/.gitignore
+- Changes in desired_output_directory/README.md
+- Changes in desired_output_directory/credentials_metadata.yaml
+- Changes in desired_output_directory/examples/__init__.py
+- Changes in desired_output_directory/examples/aws_login.py
+- Changes in desired_output_directory/examples/stripe_login.py
+- Changes in desired_output_directory/pyproject.toml
+- Changes in desired_output_directory/requirements.txt
+
 ## [0.1.0] - 2025-03-31
 
 ### Removed

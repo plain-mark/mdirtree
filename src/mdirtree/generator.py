@@ -1,9 +1,7 @@
-# src/mdirtree/generator.py
-
 import os
 import re
 import logging
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional, Set
 from pathlib import Path
 
 logging.basicConfig(
@@ -24,114 +22,117 @@ class DirectoryStructureGenerator:
         self.logger.info("Input ASCII structure:")
         for line in ascii_structure.split('\n'):
             self.logger.info(f"RAW LINE: '{line}'")
+        self.logger.info("")
 
-    def calculate_indent_level(self, line: str) -> int:
-        """Calculate indent level for a line."""
-        raw_indent = len(line) - len(line.lstrip())
-        self.logger.debug(f"Raw indent: {raw_indent} for line: '{line}'")
-
-        if self.base_indent == 0 and raw_indent > 0:
-            self.base_indent = raw_indent
-            self.logger.info(f"Set base indent to: {self.base_indent}")
-
-        if self.base_indent > 0:
-            level = raw_indent // self.base_indent
-            self.logger.debug(f"Calculated level: {level} (raw_indent: {raw_indent} / base_indent: {self.base_indent})")
-            return level
-        return 0
-
-    def parse_line(self, line: str) -> Tuple[int, str, str]:
-        """Parse a single line of ASCII art."""
-        self.logger.info(f"Parsing line: '{line}'")
-
-        # Skip empty lines or lines with only vertical bars
-        if not line.strip() or line.strip() == '│':
-            self.logger.info(f"Skipping line: '{line}'")
-            return -1, "", ""
-
-        # Clean the line
-        clean_line = line.replace('├──', '').replace('│', '').replace('└──', '')
-        self.logger.debug(f"Cleaned line: '{clean_line}'")
-
-        # Calculate indent level
-        indent_level = self.calculate_indent_level(line)
-        self.logger.info(f"Indent level: {indent_level}")
+    def _extract_name_and_comment(self, line: str) -> Tuple[str, str]:
+        """Extract the name and comment from a cleaned line."""
+        # Clean the line (remove tree characters but preserve indentation)
+        clean_line = line.replace('├── ', '').replace('└── ', '').replace('│', ' ')
 
         # Extract comment
         comment_match = self.comment_pattern.search(clean_line)
         comment = comment_match.group().strip('# ') if comment_match else ''
-        self.logger.debug(f"Extracted comment: '{comment}'")
 
         # Get name
         name = self.comment_pattern.sub('', clean_line).strip()
-        self.logger.info(f"Extracted name: '{name}'")
 
-        return indent_level, name, comment
+        return name, comment
 
-    def build_tree_structure(self) -> None:
-        """Build a tree structure from ASCII art."""
-        self.logger.info("Starting tree structure building...")
+    def _calculate_indent_level(self, line: str) -> int:
+        """Calculate the indentation level of a line."""
+        # Count the leading spaces and tree characters for indent calculation
+        indent = 0
+        for char in line:
+            if char in [' ', '│', '├', '└']:
+                indent += 1
+            else:
+                break
 
-        current_path: List[str] = []
-        current_level = -1
+        # Set base indent on first indented line
+        if self.base_indent == 0 and indent > 0:
+            self.base_indent = indent
+            self.logger.info(f"Set base indent to: {self.base_indent}")
+
+        # Calculate level
+        if self.base_indent > 0:
+            level = indent // self.base_indent
+            return level
+        return 0
+
+    def build_structure(self) -> None:
+        """Parse ASCII tree and build the directory structure."""
+        self.logger.info("Building directory structure...")
 
         lines = [line for line in self.ascii_structure.strip().split('\n') if line.strip()]
         self.logger.info(f"Processing {len(lines)} non-empty lines")
 
+        # Track current path (directories only)
+        dir_path = []
+        current_level = -1
+
         for i, line in enumerate(lines, 1):
             self.logger.info(f"\nProcessing line {i}/{len(lines)}: '{line}'")
 
-            if line.strip().startswith('│'):
-                self.logger.debug("Skipping vertical line")
+            # Skip empty lines or lines with only vertical bars
+            if not line.strip() or line.strip() == '│':
+                self.logger.info(f"Skipping empty line or vertical bar")
                 continue
 
-            level, name, comment = self.parse_line(line)
-            self.logger.info(f"Parsed components - Level: {level}, Name: '{name}', Comment: '{comment}'")
+            # Calculate indent level
+            level = self._calculate_indent_level(line)
+            self.logger.info(f"Indent level: {level}")
 
-            # Path adjustment
-            self.logger.debug(f"Current path before adjustment: {current_path}")
+            # Extract name and comment
+            name, comment = self._extract_name_and_comment(line)
+            self.logger.info(f"Name: '{name}', Comment: '{comment}'")
+
+            # Adjust directory path based on level
+            self.logger.debug(f"Current dir path: {dir_path}")
             self.logger.debug(f"Current level: {current_level}, New level: {level}")
 
-            # Move up in the tree if needed
-            while len(current_path) > level:
-                removed = current_path.pop()
+            # If we're going up or staying at the same level, remove directories
+            while len(dir_path) > level:
+                removed = dir_path.pop()
                 self.logger.info(f"Moving up tree, removed: '{removed}'")
 
-            # Clean last path component if going deeper
-            if level > current_level and current_path:
-                current_path[-1] = current_path[-1].rstrip('/')
-                self.logger.debug(f"Cleaned last path component: {current_path[-1]}")
-
-            # Update path
-            current_path.append(name)
-            current_level = level
-            self.logger.info(f"Updated path: {' -> '.join(current_path)}")
-
-            # Calculate full path
-            path_components = [p.rstrip('/') for p in current_path[:-1]]
-            if path_components:
-                full_path = os.path.join(*path_components)
+            # Get the current parent directory path
+            if dir_path:
+                parent_dir = '/'.join(dir_path)
             else:
-                full_path = '.'
-            self.logger.info(f"Calculated full path: '{full_path}'")
+                parent_dir = '.'
 
-            # Store in structure
+            # Determine if this is a directory or file
+            is_dir = name.endswith('/')
 
-            if full_path not in self.structure:
-                self.structure[full_path] = {'files': [], 'dirs': [], 'comments': {}}
-                self.logger.info(f"Created new structure entry for: '{full_path}'")
-
-            if name.endswith('/'):
+            # Process as directory or file
+            if is_dir:
+                # Add directory to current path
                 clean_name = name.rstrip('/')
-                self.structure[full_path]['dirs'].append(clean_name)
-                self.logger.info(f"Added directory '{clean_name}' to '{full_path}'")
-            else:
-                self.structure[full_path]['files'].append(name)
-                self.logger.info(f"Added file '{name}' to '{full_path}'")
+                dir_path.append(clean_name)
+                current_level = level
 
-            if comment:
-                self.structure[full_path]['comments'][name] = comment
-                self.logger.debug(f"Added comment for '{name}': {comment}")
+                # Store in structure
+                if parent_dir not in self.structure:
+                    self.structure[parent_dir] = {'files': [], 'dirs': [], 'comments': {}}
+                    self.logger.info(f"Created new structure entry for: '{parent_dir}'")
+
+                self.structure[parent_dir]['dirs'].append(clean_name)
+                self.logger.info(f"Added directory '{clean_name}' to '{parent_dir}'")
+
+                if comment:
+                    self.structure[parent_dir]['comments'][name] = comment
+            else:
+                # For files, don't modify the path, just add to current directory
+                if parent_dir not in self.structure:
+                    self.structure[parent_dir] = {'files': [], 'dirs': [], 'comments': {}}
+                    self.logger.info(f"Created new structure entry for: '{parent_dir}'")
+
+                self.structure[parent_dir]['files'].append(name)
+                self.logger.info(f"Added file '{name}' to '{parent_dir}'")
+
+                if comment:
+                    self.structure[parent_dir]['comments'][name] = comment
+                    self.logger.debug(f"Added comment for '{name}': {comment}")
 
         self.logger.info("\nFinal structure:")
         for path, content in self.structure.items():
@@ -141,27 +142,29 @@ class DirectoryStructureGenerator:
             self.logger.info(f"Comments: {content['comments']}")
 
     def generate_structure(self, base_path: str = '.', dry_run: bool = False) -> List[str]:
-        """Generate directory structure from ASCII art."""
-        self.logger.info(f"\nStarting structure generation in {base_path}")
+        """Generate the actual directory structure on disk."""
+        self.logger.info(f"Starting structure generation in {base_path}")
         self.logger.info(f"Mode: {'Dry run' if dry_run else 'Actual generation'}")
 
         operations = []
         base_path = os.path.abspath(base_path)
 
         # Build structure first
-        self.build_tree_structure()
+        self.build_structure()
 
         if not self.structure:
             self.logger.error("No structure was built! Check the input format.")
             return operations
 
+        # Create base directory
         self.logger.info(f"Creating base directory at {base_path}")
         if not dry_run:
             os.makedirs(base_path, exist_ok=True)
 
-        # Create the structure
-        for path, content in self.structure.items():
-            full_path = os.path.join(base_path, path) if path != '.' else base_path
+        # Process each directory in the structure
+        for path_str, content in self.structure.items():
+            # Create full path
+            full_path = os.path.join(base_path, path_str) if path_str != '.' else base_path
             self.logger.info(f"\nProcessing path: {full_path}")
 
             # Create directories
@@ -179,12 +182,16 @@ class DirectoryStructureGenerator:
                 self.logger.info(f"Creating file: {file_path}")
 
                 if not dry_run:
+                    # Ensure parent directory exists
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+                    # Create the file with appropriate content
                     with open(file_path, 'w', encoding='utf-8') as f:
                         comment = content['comments'].get(file_name, '')
                         if comment:
                             f.write(f"# {comment}\n")
 
+                        # Add default content based on file type
                         if file_name == '__init__.py':
                             pass
                         elif file_name == 'requirements.txt':
@@ -196,7 +203,7 @@ class DirectoryStructureGenerator:
                         elif file_name.endswith('.py'):
                             f.write(f'"""\n{file_name}\n"""\n\n')
 
-        self.logger.info(f"\nStructure generation completed.")
+        self.logger.info("\nStructure generation completed.")
         self.logger.info(f"Total operations: {len(operations)}")
         return operations
 

@@ -1,73 +1,42 @@
 [build-system]
-requires = [
-    "setuptools>=45",
-    "wheel",
-    "setuptools_scm>=6.2"
-]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mdirtree"
-dynamic = ["version", "scripts"]  # Dodano scripts do dynamic
-description = "Generate directory structure from ASCII art or Markdown files"
+version = "0.1.1"
+description = "Generate directory structures from ASCII art or Markdown files"
 readme = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.11"
+requires-python = ">=3.7"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "Tom Sapletta", email = "info@softreck.dev"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
 ]
-dependencies = [
-    "flask>=2.0.0",
-    "requests>=2.25.0",
-    "click>=8.0.0",
-    "colorama>=0.4.4",
-    "typing-extensions>=4.0.0",
-    "pyyaml>=5.4.1"
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=6.0.0",
-    "pytest-cov>=2.0.0",
-    "pytest-mock>=3.6.1",
-    "black>=21.5b2",
-    "flake8>=3.9.2",
-    "mypy>=0.910",
-    "isort>=5.9.3",
-    "pre-commit>=2.15.0",
-    "tox>=4.11.3",
-    "twine>=3.4.2",
-    "build>=0.7.0",
-    "gitpython>=3.1.0"
+    "pytest>=6.0",
+    "black>=22.1.0",
+    "flake8>=4.0.1",
+    "mypy>=0.931",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["mdirtree*"]
-
+[project.scripts]
+mdirtree = "mdirtree.cli:main"
 
 [tool.black]
 line-length = 88
-target-version = ["py311", "py312", "py313"]
-include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-line_length = 88
