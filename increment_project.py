@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-A script to increment the version in _version.py file using semantic versioning.
+A script to increment the version in __init__.py file using semantic versioning.
 """
 import re
 import argparse
@@ -22,16 +22,16 @@ import sys
 # ./increment_init.py -t prealpha
 
 # Specify a custom file path
-# ./increment_init.py -f src/pifunc/_version.py
+# ./increment_init.py -f src/pifunc/__init__.py
 
 
 def get_version_from_init(file_path):
-    """Extract the current version from _version.py file."""
+    """Extract the current version from pyproject.toml file."""
     try:
         with open(file_path, 'r') as file:
             content = file.read()
             # Look for __version__ = "x.y.z" pattern
-            version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+            version_match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
             if version_match:
                 return version_match.group(1)
     except FileNotFoundError:
@@ -107,7 +107,7 @@ def increment_version(current_version, increment_type="patch"):
     return new_version
 
 
-def find_init_file(start_dir=".", file_name="_version.py"):
+def find_init_file(start_dir=".", file_name="pyproject.toml"):
     """
     Find __init__.py files recursively starting from a directory.
     Returns a list of found files.
@@ -126,10 +126,10 @@ def find_init_file(start_dir=".", file_name="_version.py"):
 
 def update_version_in_init(file_path, increment_type="patch", backup=True):
     """
-    Update the version in _version.py file.
+    Update the version in __init__.py file.
 
     Args:
-        file_path: Path to _version.py file
+        file_path: Path to __init__.py file
         increment_type: The part of the version to increment
         backup: Whether to create a backup of the original file
 
@@ -172,7 +172,7 @@ def update_version_in_init(file_path, increment_type="patch", backup=True):
 
 def main():
     """Parse command line arguments and update version."""
-    parser = argparse.ArgumentParser(description="Increment version in _version.py file")
+    parser = argparse.ArgumentParser(description="Increment version in __init__.py file")
 
     parser.add_argument(
         "-t", "--type",
@@ -183,7 +183,7 @@ def main():
 
     parser.add_argument(
         "-f", "--file",
-        help="Path to _version.py file (if not specified, will search recursively)"
+        help="Path to __init__.py file (if not specified, will search recursively)"
     )
 
     parser.add_argument(
@@ -198,15 +198,15 @@ def main():
     if args.file:
         file_paths = [args.file]
     else:
-        # Otherwise search for _version.py files
+        # Otherwise search for __init__.py files
         file_paths = find_init_file()
 
         if not file_paths:
-            print("❌ No _version.py files with version information found.")
+            print("❌ No __init__.py files with version information found.")
             return 1
 
         if len(file_paths) > 1:
-            print("Multiple _version.py files with version information found:")
+            print("Multiple __init__.py files with version information found:")
             for i, path in enumerate(file_paths, 1):
                 print(f"{i}. {path} (version: {get_version_from_init(path)})")
 
@@ -257,6 +257,6 @@ if __name__ == "__main__":
     sys.exit(main())
 
 
-# python increment_init.py -f src/pifunc/_version.py
+# python increment_init.py -f src/pifunc/__init__.py
 # python increment_setup.py
 # python changelog.py
