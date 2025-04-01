@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-A script to increment the version in _version.py file using semantic versioning.
+A script to increment the version in __init__.py file using semantic versioning.
 """
 import re
 import argparse
@@ -22,11 +22,11 @@ import sys
 # ./increment_init.py -t prealpha
 
 # Specify a custom file path
-# ./increment_init.py -f src/pifunc/_version.py
+# ./increment_init.py -f src/pifunc/__init__.py
 
 
-def get_version_from_init(file_path):
-    """Extract the current version from _version.py file."""
+def get_version_from_file(file_path):
+    """Extract the current version from pyproject.toml file."""
     try:
         with open(file_path, 'r') as file:
             content = file.read()
@@ -107,29 +107,14 @@ def increment_version(current_version, increment_type="patch"):
     return new_version
 
 
-def find_init_file(start_dir=".", file_name="_version.py"):
-    """
-    Find __init__.py files recursively starting from a directory.
-    Returns a list of found files.
-    """
-    init_files = []
-
-    for root, dirs, files in os.walk(start_dir):
-        if file_name in files:
-            init_path = os.path.join(root, file_name)
-            # Check if it contains a version
-            if get_version_from_init(init_path):
-                init_files.append(init_path)
-
-    return init_files
 
 
 def update_version_in_init(file_path, increment_type="patch", backup=True):
     """
-    Update the version in _version.py file.
+    Update the version in __init__.py file.
 
     Args:
-        file_path: Path to _version.py file
+        file_path: Path to __init__.py file
         increment_type: The part of the version to increment
         backup: Whether to create a backup of the original file
 
@@ -138,7 +123,7 @@ def update_version_in_init(file_path, increment_type="patch", backup=True):
     """
     try:
         # Get current version
-        current_version = get_version_from_init(file_path)
+        current_version = get_version_from_file(file_path)
         if not current_version:
             return False, f"Could not find version in {file_path}", None
 
@@ -172,7 +157,7 @@ def update_version_in_init(file_path, increment_type="patch", backup=True):
 
 def main():
     """Parse command line arguments and update version."""
-    parser = argparse.ArgumentParser(description="Increment version in _version.py file")
+    parser = argparse.ArgumentParser(description="Increment version in __init__.py file")
 
     parser.add_argument(
         "-t", "--type",
@@ -183,7 +168,7 @@ def main():
 
     parser.add_argument(
         "-f", "--file",
-        help="Path to _version.py file (if not specified, will search recursively)"
+        help="Path to __init__.py file (if not specified, will search recursively)"
     )
 
     parser.add_argument(
@@ -194,42 +179,14 @@ def main():
 
     args = parser.parse_args()
 
-    # If file path is provided, use it
-    if args.file:
-        file_paths = [args.file]
-    else:
-        # Otherwise search for _version.py files
-        file_paths = find_init_file("./src/mdirtree/_version.py")
-
-        if not file_paths:
-            print("❌ No _version.py files with version information found.")
-            return 1
-
-        if len(file_paths) > 1:
-            print("Multiple _version.py files with version information found:")
-            for i, path in enumerate(file_paths, 1):
-                print(f"{i}. {path} (version: {get_version_from_init(path)})")
-
-            try:
-                choice = input("Enter the number of the file to update (or 'a' for all): ")
-                if choice.lower() == 'a':
-                    pass  # Keep all files
-                else:
-                    idx = int(choice) - 1
-                    if 0 <= idx < len(file_paths):
-                        file_paths = [file_paths[idx]]
-                    else:
-                        print("Invalid selection.")
-                        return 1
-            except (ValueError, IndexError):
-                print("Invalid selection.")
-                return 1
-
-    all_success = True
+    file_name = "src/mdirtree/_version.py"
+    file_path = "./" + file_name
+    current_version = get_version_from_file(file_path)
     updated_versions = []
+    all_success = True
 
     # Update each file
-    for file_path in file_paths:
+    if file_path:
         success, message, new_version = update_version_in_init(
             file_path=file_path,
             increment_type=args.type,
@@ -257,6 +214,6 @@ if __name__ == "__main__":
     sys.exit(main())
 
 
-# python increment_init.py -f src/pifunc/_version.py
+# python increment_init.py -f src/pifunc/__init__.py
 # python increment_setup.py
 # python changelog.py
