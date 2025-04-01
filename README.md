@@ -78,6 +78,8 @@ mdirtree -v structure.md -o ./output_dir
 
 ### Command-line Options
 
+### Command-line Options
+
 ```
 usage: mdirtree [-h] [--output OUTPUT] [--dry-run] [--verbose] [input]
 

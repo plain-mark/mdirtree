@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 2025-04-01
+
+### Added
+- Changes in increment_init.py
+- Changes in increment_setup.py
+- Changes in increment_version.py
+- Changes in project.sh
+- Changes in upgrade.sh
+
 ## [0.1.4] - 2025-03-31
 
 ## [0.1.3] - 2025-03-31
