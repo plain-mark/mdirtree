@@ -104,10 +104,22 @@ class DirectoryStructureGenerator:
             name = clean_line.rstrip('/')
 
             # Set root directory if this is the first line
-            if i == 1 and is_dir:
-                root_dir = name
-                self.logger.info(f"Set root directory: '{root_dir}'")
+            if i == 1:
+                if is_dir:
+                    root_dir = name
+                    self.logger.info(f"Set root directory: '{root_dir}'")
+                else:
+                    # If first line is a file, use '.' as root directory
+                    root_dir = '.'
+                    self.logger.info(f"First item is a file, using '.' as root directory")
+
                 self.structure[root_dir] = {'files': [], 'dirs': [], 'comments': {}}
+
+                # If first line is a file, add it to the root directory
+                if not is_dir:
+                    self.structure[root_dir]['files'].append(name)
+                    self.logger.info(f"Added file '{name}' to root directory")
+
                 continue
 
             # Find parent directory based on indent level
