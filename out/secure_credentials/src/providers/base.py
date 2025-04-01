@@ -1,5 +1,0 @@
-# Klasa bazowa
-"""
-base.py
-"""
-

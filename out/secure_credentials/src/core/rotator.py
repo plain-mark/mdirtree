@@ -1,5 +1,0 @@
-# Rotacja credentials
-"""
-rotator.py
-"""
-

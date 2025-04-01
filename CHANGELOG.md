@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.9] - 2025-04-01
+
+### Removed
+- Changes in out/secure_credentials/.gitignore
+- Changes in out/secure_credentials/README.md
+- Changes in out/secure_credentials/credentials_metadata.yaml
+- Changes in out/secure_credentials/examples/__init__.py
+- Changes in out/secure_credentials/examples/aws_login.py
+- Changes in out/secure_credentials/examples/stripe_login.py
+- Changes in out/secure_credentials/pyproject.toml
+- Changes in out/secure_credentials/requirements.txt
+- Changes in out/secure_credentials/src/__init__.py
+- Changes in out/secure_credentials/src/automation/__init__.py
+- Changes in out/secure_credentials/src/automation/browser.py
+- Changes in out/secure_credentials/src/automation/login_automator.py
+- Changes in out/secure_credentials/src/automation/session_manager.py
+- Changes in out/secure_credentials/src/core/__init__.py
+- Changes in out/secure_credentials/src/core/credentials_manager.py
+- Changes in out/secure_credentials/src/core/encryption.py
+- Changes in out/secure_credentials/src/core/rotator.py
+- Changes in out/secure_credentials/src/core/validators.py
+- Changes in out/secure_credentials/src/providers/__init__.py
+- Changes in out/secure_credentials/src/providers/base.py
+- Changes in out/secure_credentials/src/providers/bitwarden_provider.py
+- Changes in out/secure_credentials/src/providers/env_provider.py
+- Changes in out/secure_credentials/src/providers/firefox_provider.py
+- Changes in out/secure_credentials/src/providers/keepass_provider.py
+- Changes in out/secure_credentials/src/providers/keyring_provider.py
+- Changes in out/secure_credentials/src/utils/__init__.py
+- Changes in out/secure_credentials/src/utils/logger.py
+- Changes in out/secure_credentials/src/utils/security.py
+- Changes in out/secure_credentials/tests/__init__.py
+- Changes in out/secure_credentials/tests/test_automation.py
+- Changes in out/secure_credentials/tests/test_credentials_manager.py
+- Changes in out/secure_credentials/tests/test_providers.py
+- Changes in src/mdirtree/__init__.py.bak
+
 ## [0.1.8] - 2025-04-01
 
 ## [0.1.7] - 2025-04-01

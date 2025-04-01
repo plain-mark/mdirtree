@@ -1,5 +1,0 @@
-# Dokumentacja
-# Project Documentation
-
-## Overview
-

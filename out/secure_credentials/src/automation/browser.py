@@ -1,5 +1,0 @@
-# Zarządzanie przeglądarką
-"""
-browser.py
-"""
-

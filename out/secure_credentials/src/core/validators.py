@@ -1,5 +1,0 @@
-# Walidatory
-"""
-validators.py
-"""
-

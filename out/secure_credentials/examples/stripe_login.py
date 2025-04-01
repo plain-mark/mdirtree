@@ -1,4 +1,0 @@
-"""
-stripe_login.py
-"""
-

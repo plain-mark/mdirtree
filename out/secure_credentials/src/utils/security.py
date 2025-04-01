@@ -1,5 +1,0 @@
-# Narzędzia bezpieczeństwa
-"""
-security.py
-"""
-
