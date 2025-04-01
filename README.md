@@ -76,7 +76,6 @@ mdirtree --dry-run structure.md
 mdirtree -v structure.md -o ./output_dir
 ```
 
-### Command-line Options
 
 ### Command-line Options
 

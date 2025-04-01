@@ -1,0 +1,5 @@
+# Szyfrowanie
+"""
+encryption.py
+"""
+

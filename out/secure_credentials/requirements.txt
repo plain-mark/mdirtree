@@ -1,0 +1,2 @@
+# Zależności
+# Project dependencies
