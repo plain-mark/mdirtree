@@ -25,7 +25,7 @@ import sys
 # ./increment_init.py -f src/pifunc/__init__.py
 
 
-def get_version_from_init(file_path):
+def get_version_from_file(file_path):
     """Extract the current version from pyproject.toml file."""
     try:
         with open(file_path, 'r') as file:
@@ -107,21 +107,6 @@ def increment_version(current_version, increment_type="patch"):
     return new_version
 
 
-def find_init_file(start_dir=".", file_name="pyproject.toml"):
-    """
-    Find __init__.py files recursively starting from a directory.
-    Returns a list of found files.
-    """
-    init_files = []
-
-    for root, dirs, files in os.walk(start_dir):
-        if file_name in files:
-            init_path = os.path.join(root, file_name)
-            # Check if it contains a version
-            if get_version_from_init(init_path):
-                init_files.append(init_path)
-
-    return init_files
 
 
 def update_version_in_init(file_path, increment_type="patch", backup=True):
@@ -138,7 +123,7 @@ def update_version_in_init(file_path, increment_type="patch", backup=True):
     """
     try:
         # Get current version
-        current_version = get_version_from_init(file_path)
+        current_version = get_version_from_file(file_path)
         if not current_version:
             return False, f"Could not find version in {file_path}", None
 
@@ -194,42 +179,14 @@ def main():
 
     args = parser.parse_args()
 
-    # If file path is provided, use it
-    if args.file:
-        file_paths = [args.file]
-    else:
-        # Otherwise search for __init__.py files
-        file_paths = find_init_file()
-
-        if not file_paths:
-            print("❌ No __init__.py files with version information found.")
-            return 1
-
-        if len(file_paths) > 1:
-            print("Multiple __init__.py files with version information found:")
-            for i, path in enumerate(file_paths, 1):
-                print(f"{i}. {path} (version: {get_version_from_init(path)})")
-
-            try:
-                choice = input("Enter the number of the file to update (or 'a' for all): ")
-                if choice.lower() == 'a':
-                    pass  # Keep all files
-                else:
-                    idx = int(choice) - 1
-                    if 0 <= idx < len(file_paths):
-                        file_paths = [file_paths[idx]]
-                    else:
-                        print("Invalid selection.")
-                        return 1
-            except (ValueError, IndexError):
-                print("Invalid selection.")
-                return 1
-
-    all_success = True
+    file_name = "pyproject.toml"
+    file_path = "./" + file_name
+    current_version = get_version_from_file(file_path)
     updated_versions = []
+    all_success = True
 
     # Update each file
-    for file_path in file_paths:
+    if file_path:
         success, message, new_version = update_version_in_init(
             file_path=file_path,
             increment_type=args.type,

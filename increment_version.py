@@ -199,7 +199,7 @@ def main():
         file_paths = [args.file]
     else:
         # Otherwise search for _version.py files
-        file_paths = find_init_file()
+        file_paths = find_init_file("./src/mdirtree/_version.py")
 
         if not file_paths:
             print("❌ No _version.py files with version information found.")

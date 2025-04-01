@@ -7,7 +7,7 @@ rm -rf build
 # Zainstaluj w trybie edytowalnym
 pip install -e .
 python increment_init.py -f src/mdirtree/__init__.py
-python increment_setup.py
+#python increment_setup.py
 python increment_version.py
 python increment_project.py
 python changelog.py
