@@ -1,4 +1,3 @@
-#!/bin/bash
 # Script to upgrade all development requirements to their latest versions
 
 # Ensure we're in a virtual environment

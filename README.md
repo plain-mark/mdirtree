@@ -3,6 +3,7 @@
 Generate directory structures from ASCII art or Markdown files.
 
 + [CONTRIBUTION.md](CONTRIBUTION.md)
++ [CHANGELOG.md](CHANGELOG.md)
 
 ## Overview
 
@@ -19,6 +20,9 @@ This is useful for quickly setting up project scaffolding, creating test directo
 - Comment support (using # after file/directory names)
 - Special handling for common files (README.md, __init__.py, etc.)
 - REST API for remote directory generation
+- Automated session management for tracking changes
+- Support for incremental updates to existing structures
+- Template system for common directory patterns
 
 ## Installation
 
@@ -26,6 +30,14 @@ This is useful for quickly setting up project scaffolding, creating test directo
 
 ```bash
 pip install mdirtree
+```
+
+### Via GitHub
+
+```bash
+git clone https://github.com/plain-mark/mdirtree.git
+cd mdirtree
+pip install .
 ```
 
 ### Setting up a development environment
@@ -74,13 +86,15 @@ mdirtree --dry-run structure.md
 
 # Enable verbose logging
 mdirtree -v structure.md -o ./output_dir
-```
 
+# Use session management for tracking changes
+mdirtree --session my-project structure.md -o ./output_dir
+```
 
 ### Command-line Options
 
 ```
-usage: mdirtree [-h] [--output OUTPUT] [--dry-run] [--verbose] [input]
+usage: mdirtree [-h] [--output OUTPUT] [--dry-run] [--verbose] [--session SESSION] [input]
 
 Generate directory structure from ASCII art or Markdown files
 
@@ -93,6 +107,8 @@ options:
                         Output directory (default: current directory)
   --dry-run, -d         Show planned operations without creating files
   --verbose, -v         Enable verbose logging
+  --session SESSION, -s SESSION
+                        Session name for tracking changes
 ```
 
 ### Input Format Example
@@ -102,8 +118,12 @@ project/
 ├── src/
 │   ├── main.py
 │   └── utils/
-└── tests/
-    └── test_main.py
+│       ├── helpers.py
+│       └── __init__.py
+├── tests/
+│   ├── test_main.py
+│   └── __init__.py
+└── README.md
 ```
 
 ## REST API
@@ -140,6 +160,10 @@ print(result)
 # Dry run mode
 result = client.generate_structure(structure, dry_run=True)
 print(result)
+
+# With session management
+result = client.generate_structure(structure, output_path="./output", session="my-project")
+print(result)
 ```
 
 ### REST API Endpoints
@@ -150,7 +174,8 @@ print(result)
     {
         "structure": "ASCII art structure",
         "output_path": "optional output path",
-        "dry_run": false
+        "dry_run": false,
+        "session": "optional session name"
     }
     ```
   - Response:
@@ -161,6 +186,28 @@ print(result)
         "output_path": "output path"
     }
     ```
+
+## Automation
+
+mdirtree provides automation capabilities for integrating with CI/CD pipelines and other automated workflows:
+
+```python
+from mdirtree.automation.session_manager import SessionManager
+
+# Create a session manager
+manager = SessionManager("my-project")
+
+# Track changes between structure updates
+manager.start_session()
+manager.generate_structure("structure.md", "./output")
+changes = manager.end_session()
+
+print(f"Changes made: {changes}")
+```
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTION.md](CONTRIBUTION.md) for guidelines.
 
 ## License
 
